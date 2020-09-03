@@ -4,6 +4,8 @@ import json
 import copy
 import logging
 import functools
+
+from leaguedirector.replayApiHostSingleton import ReplayApiHostSingleton
 from leaguedirector.widgets import userpath
 from PySide2.QtCore import *
 from PySide2.QtNetwork import *
@@ -13,14 +15,18 @@ class Resource(QObject):
     """
     Base class for a remote api resources.
     """
-    updated     = Signal()
-    host        = 'https://127.0.0.1:2999'
-    url         = ''
-    fields      = {}
-    connected   = False
-    readonly    = False
-    writeonly   = False
-    network     = None
+    updated = Signal()
+    # host        = 'https://127.0.0.1:2999'
+    url = ''
+    fields = {}
+    connected = False
+    readonly = False
+    writeonly = False
+    network = None
+
+    @property
+    def host(self):
+        return ReplayApiHostSingleton.get_instance().get_host()
 
     def __init__(self):
         object.__setattr__(self, 'timestamp', time.time())
@@ -122,61 +128,61 @@ class Recording(Resource):
 class Render(Resource):
     url = '/replay/render'
     fields = {
-        'cameraMode' : '',
-        'cameraPosition' : {'x': 0, 'y': 0, 'z': 0},
-        'cameraRotation' : {'x': 0, 'y': 0, 'z': 0},
-        'cameraAttached' : False,
-        'cameraMoveSpeed' : 0,
-        'cameraLookSpeed' : 0,
-        'fieldOfView' : 0,
-        'nearClip' : 0,
-        'farClip' : 0,
-        'fogOfWar' : True,
-        'outlineSelect' : True,
-        'outlineHover' : True,
-        'floatingText' : True,
-        'navGridOffset' : 0,
-        'interfaceAll' : True,
-        'interfaceReplay' : True,
-        'interfaceScore' : True,
-        'interfaceScoreboard' : True,
-        'interfaceFrames' : True,
-        'interfaceMinimap' : True,
-        'interfaceTimeline' : True,
-        'interfaceChat' : True,
-        'interfaceTarget' : True,
-        'interfaceQuests' : True,
-        'interfaceAnnounce' : True,
-        'healthBarChampions' : True,
-        'healthBarStructures' : True,
-        'healthBarWards' : True,
-        'healthBarPets' : True,
-        'healthBarMinions' : True,
-        'environment' : True,
-        'characters' : True,
-        'particles' : True,
-        'skyboxPath' : '',
-        'skyboxRotation' : 0,
-        'skyboxRadius' : 0,
-        'skyboxOffset' : 0,
-        'sunDirection' : {'x': 0, 'y': 0, 'z': 0},
-        'depthFogEnabled' : False,
-        'depthFogStart' : 0,
-        'depthFogEnd' : 0,
-        'depthFogIntensity' : 1,
-        'depthFogColor' : {'r': 0, 'g': 0, 'b': 0, 'a': 0},
-        'heightFogEnabled' : False,
-        'heightFogStart' : 0,
-        'heightFogEnd' : 0,
-        'heightFogIntensity' : 1,
-        'heightFogColor' : {'r': 0, 'g': 0, 'b': 0, 'a': 0},
-        'depthOfFieldEnabled' : False,
-        'depthOfFieldDebug' : False,
-        'depthOfFieldCircle' : 0,
-        'depthOfFieldWidth' : 0,
-        'depthOfFieldNear' : 0,
-        'depthOfFieldMid' : 0,
-        'depthOfFieldFar' : 0,
+        'cameraMode': '',
+        'cameraPosition': {'x': 0, 'y': 0, 'z': 0},
+        'cameraRotation': {'x': 0, 'y': 0, 'z': 0},
+        'cameraAttached': False,
+        'cameraMoveSpeed': 0,
+        'cameraLookSpeed': 0,
+        'fieldOfView': 0,
+        'nearClip': 0,
+        'farClip': 0,
+        'fogOfWar': True,
+        'outlineSelect': True,
+        'outlineHover': True,
+        'floatingText': True,
+        'navGridOffset': 0,
+        'interfaceAll': True,
+        'interfaceReplay': True,
+        'interfaceScore': True,
+        'interfaceScoreboard': True,
+        'interfaceFrames': True,
+        'interfaceMinimap': True,
+        'interfaceTimeline': True,
+        'interfaceChat': True,
+        'interfaceTarget': True,
+        'interfaceQuests': True,
+        'interfaceAnnounce': True,
+        'healthBarChampions': True,
+        'healthBarStructures': True,
+        'healthBarWards': True,
+        'healthBarPets': True,
+        'healthBarMinions': True,
+        'environment': True,
+        'characters': True,
+        'particles': True,
+        'skyboxPath': '',
+        'skyboxRotation': 0,
+        'skyboxRadius': 0,
+        'skyboxOffset': 0,
+        'sunDirection': {'x': 0, 'y': 0, 'z': 0},
+        'depthFogEnabled': False,
+        'depthFogStart': 0,
+        'depthFogEnd': 0,
+        'depthFogIntensity': 1,
+        'depthFogColor': {'r': 0, 'g': 0, 'b': 0, 'a': 0},
+        'heightFogEnabled': False,
+        'heightFogStart': 0,
+        'heightFogEnd': 0,
+        'heightFogIntensity': 1,
+        'heightFogColor': {'r': 0, 'g': 0, 'b': 0, 'a': 0},
+        'depthOfFieldEnabled': False,
+        'depthOfFieldDebug': False,
+        'depthOfFieldCircle': 0,
+        'depthOfFieldWidth': 0,
+        'depthOfFieldNear': 0,
+        'depthOfFieldMid': 0,
+        'depthOfFieldFar': 0,
     }
 
     def __init__(self):
@@ -243,7 +249,7 @@ class Particles(Resource):
 
     def setParticle(self, particle, enabled):
         if particle in self.particles:
-            self.update({particle:enabled})
+            self.update({particle: enabled})
 
     def getParticle(self, particle):
         return self.particles.get(particle, True)
@@ -252,11 +258,11 @@ class Particles(Resource):
 class Playback(Resource):
     url = '/replay/playback'
     fields = {
-        'paused':   False,
-        'seeking':  False,
-        'time':     0.0,
-        'speed':    0.0,
-        'length':   1.0,
+        'paused': False,
+        'seeking': False,
+        'time': 0.0,
+        'speed': 0.0,
+        'length': 1.0,
     }
 
     @property
@@ -392,19 +398,19 @@ class Sequence(Resource):
         self.saveHistory()
 
     def data(self):
-        return {key:getattr(self, key) for key in self.fields}
+        return {key: getattr(self, key) for key in self.fields}
 
     @property
     def startTime(self):
         keyframes = self.cameraPosition + self.cameraRotation
         if len(keyframes):
-            return min(keyframe['time'] for keyframe in keyframes)            
+            return min(keyframe['time'] for keyframe in keyframes)
 
     @property
     def endTime(self):
         keyframes = self.cameraPosition + self.cameraRotation
         if len(keyframes):
-            return max(keyframe['time'] for keyframe in keyframes)            
+            return max(keyframe['time'] for keyframe in keyframes)
 
     def path(self):
         return os.path.join(self.directory, self.name + '.json')
@@ -510,10 +516,11 @@ class Sequence(Resource):
     def sortData(self):
         for track in self.fields:
             if getattr(self, track):
-                getattr(self, track).sort(key = lambda item: item['time'])
+                getattr(self, track).sort(key=lambda item: item['time'])
 
     def reloadNames(self):
-        self.names = sorted([f.replace('.json', '') for f in os.listdir(self.directory) if f.endswith('.json')], key=str.lower)
+        self.names = sorted([f.replace('.json', '') for f in os.listdir(self.directory) if f.endswith('.json')],
+                            key=str.lower)
         self.namesLoaded.emit()
 
     @property

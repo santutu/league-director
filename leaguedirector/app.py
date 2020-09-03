@@ -9,6 +9,8 @@ from PySide2.QtGui import *
 from PySide2.QtCore import *
 from PySide2.QtWidgets import *
 from PySide2.QtNetwork import *
+
+from leaguedirector.replayApiHostSingleton import ReplayApiHostSingleton
 from leaguedirector.widgets import *
 from leaguedirector.sequencer import *
 from leaguedirector.enable import *
@@ -136,7 +138,7 @@ class VisibleWindow(QScrollArea):
                 self.api.render.set(name, value)
 
     def saveSettings(self):
-        return {name:self.api.render.get(name) for name in self.inputs}
+        return {name: self.api.render.get(name) for name in self.inputs}
 
     def onKeybinding(self, name):
         if name in self.bindings:
@@ -285,9 +287,12 @@ class RenderWindow(QScrollArea):
         self.cameraLockX.update(self.api.render.cameraLockX is not None)
         self.cameraLockY.update(self.api.render.cameraLockY is not None)
         self.cameraLockZ.update(self.api.render.cameraLockZ is not None)
-        self.cameraLockX.setCheckboxText('{0:.2f}'.format(self.api.render.cameraLockX) if self.api.render.cameraLockX else 'X')
-        self.cameraLockY.setCheckboxText('{0:.2f}'.format(self.api.render.cameraLockY) if self.api.render.cameraLockY else 'Y')
-        self.cameraLockZ.setCheckboxText('{0:.2f}'.format(self.api.render.cameraLockZ) if self.api.render.cameraLockZ else 'Z')
+        self.cameraLockX.setCheckboxText(
+            '{0:.2f}'.format(self.api.render.cameraLockX) if self.api.render.cameraLockX else 'X')
+        self.cameraLockY.setCheckboxText(
+            '{0:.2f}'.format(self.api.render.cameraLockY) if self.api.render.cameraLockY else 'Y')
+        self.cameraLockZ.setCheckboxText(
+            '{0:.2f}'.format(self.api.render.cameraLockZ) if self.api.render.cameraLockZ else 'Z')
         self.cameraMode.setText(self.api.render.cameraMode)
         self.cameraPosition.update(self.api.render.cameraPosition)
         self.cameraRotation.update(self.api.render.cameraRotation)
@@ -449,19 +454,19 @@ class RecordingWindow(VBoxWidget):
         QDesktopServices.openUrl(QUrl('file:///{}'.format(item.text())))
 
     def stopRecording(self):
-        self.api.recording.update({'recording' : False})
+        self.api.recording.update({'recording': False})
 
     def startRecording(self):
         self.api.playback.play()
         self.api.recording.update({
-            'recording' : True,
-            'codec' : self.codec.currentText(),
-            'startTime' : self.startTime.value(),
-            'endTime' : self.endTime.value(),
-            'framesPerSecond' : self.fps.value(),
-            'enforceFrameRate' : True,
-            'lossless' : self.lossless.value(),
-            'path' : self.outputPath,
+            'recording': True,
+            'codec': self.codec.currentText(),
+            'startTime': self.startTime.value(),
+            'endTime': self.endTime.value(),
+            'framesPerSecond': self.fps.value(),
+            'enforceFrameRate': True,
+            'lossless': self.lossless.value(),
+            'path': self.outputPath,
         })
 
     def setOutputDirectory(self, path):
@@ -506,7 +511,8 @@ class TimelineWindow(QWidget):
         self.api.sequence.setDirectory(data.get('directory', userpath('sequences')))
 
     def selectDirectory(self):
-        self.api.sequence.setDirectory(QFileDialog.getExistingDirectory(self, 'Select Directory', self.api.sequence.directory))
+        self.api.sequence.setDirectory(
+            QFileDialog.getExistingDirectory(self, 'Select Directory', self.api.sequence.directory))
 
     def layoutSequencer(self, layout):
         self.sequenceCombo = SequenceCombo(self.api)
@@ -832,7 +838,18 @@ class ConnectWindow(QDialog):
         self.list.itemChanged.connect(self.itemChanged)
         self.list.setSortingEnabled(False)
         self.layout.addWidget(self.list)
+
+        self.reloadReplayApiButton = QPushButton("reload replay api")
+        self.reloadReplayApiButton.clicked.connect(self.reloadReplayApi)
+        self.layout.addWidget(self.reloadReplayApiButton)
+
         self.reload()
+
+    def reloadReplayApi(self):
+        if not ReplayApiHostSingleton.get_instance().find_and_set_host():
+            msg = QMessageBox()
+            msg.setText("No Found League of Legends on processes")
+            msg.exec_()
 
     def sizeHint(self):
         return QSize(400, 100)
@@ -927,7 +944,8 @@ class LeagueDirector(object):
         handler = logging.handlers.RotatingFileHandler(path, backupCount=20)
         try:
             handler.doRollover()
-        except Exception: pass
+        except Exception:
+            pass
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         handler = logging.StreamHandler()
@@ -941,11 +959,13 @@ class LeagueDirector(object):
         self.updateAvailable = False
         request = QNetworkRequest(QUrl('https://api.github.com/repos/riotgames/leaguedirector/releases/latest'))
         response = self.api.game.manager().get(request)
+
         def callback():
             if response.error() == QNetworkReply.NoError:
                 version = json.loads(response.readAll().data().decode()).get('tag_name')
                 if version and version != 'v{}'.format(leaguedirector.__version__):
                     self.updateAvailable = True
+
         response.finished.connect(callback)
 
     def handleMessage(self, msgType, msgContext, msgString):
@@ -964,104 +984,104 @@ class LeagueDirector(object):
 
     def setupBindings(self):
         return Bindings(self.window, self.settings.value('bindings', {}), [
-            ('play_pause',                  'Play / Pause',                     'Space'),
-            ('camera_up',                   'Camera Up',                        ''),
-            ('camera_down',                 'Camera Down',                      ''),
-            ('camera_yaw_left',             'Camera Yaw Left',                  ''),
-            ('camera_yaw_right',            'Camera Yaw Right',                 ''),
-            ('camera_pitch_up',             'Camera Pitch Up',                  ''),
-            ('camera_pitch_down',           'Camera Pitch Down',                ''),
-            ('camera_roll_left',            'Camera Roll Left',                 ''),
-            ('camera_roll_right',           'Camera Roll Right',                ''),
-            ('camera_move_speed_up',        'Camera Move Speed Up',             'Ctrl++'),
-            ('camera_move_speed_down',      'Camera Move Speed Down',           'Ctrl+-'),
-            ('camera_look_speed_up',        'Camera Look Speed Up',             ''),
-            ('camera_look_speed_down',      'Camera Look Speed Down',           ''),
-            ('camera_lock_x',               'Camera Lock X Axis',               ''),
-            ('camera_lock_y',               'Camera Lock Y Axis',               ''),
-            ('camera_lock_z',               'Camera Lock Z Axis',               ''),
-            ('camera_attach',               'Camera Attach',                    ''),
-            ('camera_fov_up',               'Camera Increase Field of View',    ''),
-            ('camera_fov_down',             'Camera Decrease Field of View',    ''),
-            ('render_dof_near_up',          'Increase Depth of Field Near',     ''),
-            ('render_dof_near_down',        'Decrease Depth of Field Near',     ''),
-            ('render_dof_mid_up',           'Increase Depth of Field Mid',      ''),
-            ('render_dof_mid_down',         'Decrease Depth of Field Mid',      ''),
-            ('render_dof_far_up',           'Increase Depth of Field Far',      ''),
-            ('render_dof_far_down',         'Decrease Depth of Field Far',      ''),
-            ('show_fog_of_war',             'Show Fog of War',                  ''),
-            ('show_selected_outline',       'Show Selected Outline',            ''),
-            ('show_hover_outline',          'Show Hover Outline',               ''),
-            ('show_floating_text',          'Show Floating Text',               ''),
-            ('show_interface_all',          'Show UI All',                      ''),
-            ('show_interface_replay',       'Show UI Replay',                   ''),
-            ('show_interface_score',        'Show UI Score',                    ''),
-            ('show_interface_scoreboard',   'Show UI Scoreboard',               ''),
-            ('show_interface_frames',       'Show UI Frames',                   ''),
-            ('show_interface_minimap',      'Show UI Minimap',                  ''),
-            ('show_interface_timeline',     'Show UI Timeline',                 ''),
-            ('show_interface_chat',         'Show UI Chat',                     ''),
-            ('show_interface_target',       'Show UI Target',                   ''),
-            ('show_interface_quests',       'Show UI Quests',                   ''),
-            ('show_interface_announce',     'Show UI Announcements',            ''),
-            ('show_healthbar_champions',    'Show Health Champions',            ''),
-            ('show_healthbar_structures',   'Show Health Structures',           ''),
-            ('show_healthbar_wards',        'Show Health Wards',                ''),
-            ('show_healthbar_pets',         'Show Health Pets',                 ''),
-            ('show_healthbar_minions',      'Show Health Minions',              ''),
-            ('show_environment',            'Show Environment',                 ''),
-            ('show_characters',             'Show Characters',                  ''),
-            ('show_particles',              'Show Particles',                   ''),
-            ('sequence_play',               'Play Sequence',                    'Ctrl+Space'),
-            ('sequence_apply',              'Apply Sequence',                   '\\'),
-            ('sequence_new',                'New Sequence',                     'Ctrl+N'),
-            ('sequence_copy',               'Copy Sequence',                    ''),
-            ('sequence_clear',              'Clear Sequence',                   ''),
-            ('sequence_del_kf',             'Delete Keyframe',                  'Del'),
-            ('sequence_next_kf',            'Select Next Keyframe',             ''),
-            ('sequence_prev_kf',            'Select Prev Keyframe',             ''),
-            ('sequence_adj_kf',             'Select Adjacent Keyframes',        ''),
-            ('sequence_all_kf',             'Select All Keyframes',             'Ctrl+A'),
-            ('sequence_seek_kf',            'Seek To Keyframe',                 ''),
-            ('sequence_undo',               'Sequence Undo',                    'Ctrl+Z'),
-            ('sequence_redo',               'Sequence Redo',                    'Ctrl+Shift+Z'),
-            ('time_minus_120',              'Time -120 Seconds',                ''),
-            ('time_minus_60',               'Time -60 Seconds',                 ''),
-            ('time_minus_30',               'Time -30 Seconds',                 ''),
-            ('time_minus_10',               'Time -10 Seconds',                 ''),
-            ('time_minus_5',                'Time -5 Seconds',                  ''),
-            ('time_plus_5',                 'Time +5 Seconds',                  ''),
-            ('time_plus_10',                'Time +10 Seconds',                 ''),
-            ('time_plus_30',                'Time +30 Seconds',                 ''),
-            ('time_plus_60',                'Time +60 Seconds',                 ''),
-            ('time_plus_120',               'Time +120 Seconds',                ''),
-            ('kf_position',                 'Keyframe Position',                '+'),
-            ('kf_rotation',                 'Keyframe Rotation',                '+'),
-            ('kf_speed',                    'Keyframe Speed',                   ''),
-            ('kf_fov',                      'Keyframe Field of View',           ''),
-            ('kf_near_clip',                'Keyframe Near Clip',               ''),
-            ('kf_far_clip',                 'Keyframe Far Clip',                ''),
-            ('kf_nav_grid',                 'Keyframe Nav Grid Offset',         ''),
-            ('kf_sky_rotation',             'Keyframe Skybox Rotation',         ''),
-            ('kf_sky_radius',               'Keyframe Skybox Radius',           ''),
-            ('kf_sky_offset',               'Keyframe Skybox Offset',           ''),
-            ('kf_sun_direction',            'Keyframe Sun Direction',           ''),
-            ('kf_depth_fog_enable',         'Keyframe Depth Fog Enable',        ''),
-            ('kf_depth_fog_start',          'Keyframe Depth Fog Start',         ''),
-            ('kf_depth_fog_end',            'Keyframe Depth Fog End',           ''),
-            ('kf_depth_fog_intensity',      'Keyframe Depth Fog Intensity',     ''),
-            ('kf_depth_fog_color',          'Keyframe Depth Fog Color',         ''),
-            ('kf_height_fog_enable',        'Keyframe Height Fog Enable',       ''),
-            ('kf_height_fog_start',         'Keyframe Height Fog Start',        ''),
-            ('kf_height_fog_end',           'Keyframe Height Fog End',          ''),
-            ('kf_height_fog_intensity',     'Keyframe Height Fog Intensity',    ''),
-            ('kf_height_fog_color',         'Keyframe Height Fog Color',        ''),
-            ('kf_dof_enabled',              'Keyframe DOF Enabled',             ''),
-            ('kf_dof_circle',               'Keyframe DOF Circle',              ''),
-            ('kf_dof_width',                'Keyframe DOF Width',               ''),
-            ('kf_dof_near',                 'Keyframe DOF Near',                ''),
-            ('kf_dof_mid',                  'Keyframe DOF Mid',                 ''),
-            ('kf_dof_far',                  'Keyframe DOF Far',                 ''),
+            ('play_pause', 'Play / Pause', 'Space'),
+            ('camera_up', 'Camera Up', ''),
+            ('camera_down', 'Camera Down', ''),
+            ('camera_yaw_left', 'Camera Yaw Left', ''),
+            ('camera_yaw_right', 'Camera Yaw Right', ''),
+            ('camera_pitch_up', 'Camera Pitch Up', ''),
+            ('camera_pitch_down', 'Camera Pitch Down', ''),
+            ('camera_roll_left', 'Camera Roll Left', ''),
+            ('camera_roll_right', 'Camera Roll Right', ''),
+            ('camera_move_speed_up', 'Camera Move Speed Up', 'Ctrl++'),
+            ('camera_move_speed_down', 'Camera Move Speed Down', 'Ctrl+-'),
+            ('camera_look_speed_up', 'Camera Look Speed Up', ''),
+            ('camera_look_speed_down', 'Camera Look Speed Down', ''),
+            ('camera_lock_x', 'Camera Lock X Axis', ''),
+            ('camera_lock_y', 'Camera Lock Y Axis', ''),
+            ('camera_lock_z', 'Camera Lock Z Axis', ''),
+            ('camera_attach', 'Camera Attach', ''),
+            ('camera_fov_up', 'Camera Increase Field of View', ''),
+            ('camera_fov_down', 'Camera Decrease Field of View', ''),
+            ('render_dof_near_up', 'Increase Depth of Field Near', ''),
+            ('render_dof_near_down', 'Decrease Depth of Field Near', ''),
+            ('render_dof_mid_up', 'Increase Depth of Field Mid', ''),
+            ('render_dof_mid_down', 'Decrease Depth of Field Mid', ''),
+            ('render_dof_far_up', 'Increase Depth of Field Far', ''),
+            ('render_dof_far_down', 'Decrease Depth of Field Far', ''),
+            ('show_fog_of_war', 'Show Fog of War', ''),
+            ('show_selected_outline', 'Show Selected Outline', ''),
+            ('show_hover_outline', 'Show Hover Outline', ''),
+            ('show_floating_text', 'Show Floating Text', ''),
+            ('show_interface_all', 'Show UI All', ''),
+            ('show_interface_replay', 'Show UI Replay', ''),
+            ('show_interface_score', 'Show UI Score', ''),
+            ('show_interface_scoreboard', 'Show UI Scoreboard', ''),
+            ('show_interface_frames', 'Show UI Frames', ''),
+            ('show_interface_minimap', 'Show UI Minimap', ''),
+            ('show_interface_timeline', 'Show UI Timeline', ''),
+            ('show_interface_chat', 'Show UI Chat', ''),
+            ('show_interface_target', 'Show UI Target', ''),
+            ('show_interface_quests', 'Show UI Quests', ''),
+            ('show_interface_announce', 'Show UI Announcements', ''),
+            ('show_healthbar_champions', 'Show Health Champions', ''),
+            ('show_healthbar_structures', 'Show Health Structures', ''),
+            ('show_healthbar_wards', 'Show Health Wards', ''),
+            ('show_healthbar_pets', 'Show Health Pets', ''),
+            ('show_healthbar_minions', 'Show Health Minions', ''),
+            ('show_environment', 'Show Environment', ''),
+            ('show_characters', 'Show Characters', ''),
+            ('show_particles', 'Show Particles', ''),
+            ('sequence_play', 'Play Sequence', 'Ctrl+Space'),
+            ('sequence_apply', 'Apply Sequence', '\\'),
+            ('sequence_new', 'New Sequence', 'Ctrl+N'),
+            ('sequence_copy', 'Copy Sequence', ''),
+            ('sequence_clear', 'Clear Sequence', ''),
+            ('sequence_del_kf', 'Delete Keyframe', 'Del'),
+            ('sequence_next_kf', 'Select Next Keyframe', ''),
+            ('sequence_prev_kf', 'Select Prev Keyframe', ''),
+            ('sequence_adj_kf', 'Select Adjacent Keyframes', ''),
+            ('sequence_all_kf', 'Select All Keyframes', 'Ctrl+A'),
+            ('sequence_seek_kf', 'Seek To Keyframe', ''),
+            ('sequence_undo', 'Sequence Undo', 'Ctrl+Z'),
+            ('sequence_redo', 'Sequence Redo', 'Ctrl+Shift+Z'),
+            ('time_minus_120', 'Time -120 Seconds', ''),
+            ('time_minus_60', 'Time -60 Seconds', ''),
+            ('time_minus_30', 'Time -30 Seconds', ''),
+            ('time_minus_10', 'Time -10 Seconds', ''),
+            ('time_minus_5', 'Time -5 Seconds', ''),
+            ('time_plus_5', 'Time +5 Seconds', ''),
+            ('time_plus_10', 'Time +10 Seconds', ''),
+            ('time_plus_30', 'Time +30 Seconds', ''),
+            ('time_plus_60', 'Time +60 Seconds', ''),
+            ('time_plus_120', 'Time +120 Seconds', ''),
+            ('kf_position', 'Keyframe Position', '+'),
+            ('kf_rotation', 'Keyframe Rotation', '+'),
+            ('kf_speed', 'Keyframe Speed', ''),
+            ('kf_fov', 'Keyframe Field of View', ''),
+            ('kf_near_clip', 'Keyframe Near Clip', ''),
+            ('kf_far_clip', 'Keyframe Far Clip', ''),
+            ('kf_nav_grid', 'Keyframe Nav Grid Offset', ''),
+            ('kf_sky_rotation', 'Keyframe Skybox Rotation', ''),
+            ('kf_sky_radius', 'Keyframe Skybox Radius', ''),
+            ('kf_sky_offset', 'Keyframe Skybox Offset', ''),
+            ('kf_sun_direction', 'Keyframe Sun Direction', ''),
+            ('kf_depth_fog_enable', 'Keyframe Depth Fog Enable', ''),
+            ('kf_depth_fog_start', 'Keyframe Depth Fog Start', ''),
+            ('kf_depth_fog_end', 'Keyframe Depth Fog End', ''),
+            ('kf_depth_fog_intensity', 'Keyframe Depth Fog Intensity', ''),
+            ('kf_depth_fog_color', 'Keyframe Depth Fog Color', ''),
+            ('kf_height_fog_enable', 'Keyframe Height Fog Enable', ''),
+            ('kf_height_fog_start', 'Keyframe Height Fog Start', ''),
+            ('kf_height_fog_end', 'Keyframe Height Fog End', ''),
+            ('kf_height_fog_intensity', 'Keyframe Height Fog Intensity', ''),
+            ('kf_height_fog_color', 'Keyframe Height Fog Color', ''),
+            ('kf_dof_enabled', 'Keyframe DOF Enabled', ''),
+            ('kf_dof_circle', 'Keyframe DOF Circle', ''),
+            ('kf_dof_width', 'Keyframe DOF Width', ''),
+            ('kf_dof_near', 'Keyframe DOF Near', ''),
+            ('kf_dof_mid', 'Keyframe DOF Mid', ''),
+            ('kf_dof_far', 'Keyframe DOF Far', ''),
         ])
 
     def addWindow(self, widget, name):
