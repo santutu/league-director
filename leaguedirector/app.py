@@ -1,22 +1,19 @@
-import os
 import sys
 import json
 import functools
-import logging
 import logging.handlers
 import leaguedirector
-from PySide2.QtGui import *
-from PySide2.QtCore import *
-from PySide2.QtWidgets import *
 from PySide2.QtNetwork import *
 
 from leaguedirector.replayApiHostSingleton import ReplayApiHostSingleton
-from leaguedirector.widgets import *
+from leaguedirector.sequence.sequenceSelectedView import SequenceSelectedView
 from leaguedirector.sequencer import *
 from leaguedirector.enable import *
 from leaguedirector.api import Game, Playback, Render, Particles, Recording, Sequence
 from leaguedirector.bindings import Bindings
 from leaguedirector.settings import Settings
+from leaguedirector.widget.floatInput import FloatInput
+from leaguedirector.widget.vectorInput import VectorInput
 
 
 class SkyboxCombo(QComboBox):
