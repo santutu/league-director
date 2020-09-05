@@ -3,7 +3,7 @@ import functools
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QFileDialog, QPushButton, QStyle, QLabel, QSlider, QInputDialog
 
-from leaguedirector.views.sequenceSelectedView import SequenceSelectedView
+from leaguedirector.sequence.sequenceSelectedView import SequenceSelectedView
 from leaguedirector.sequence.sequenceCombo import SequenceCombo
 from leaguedirector.sequence.sequenceTrackView import SequenceTrackView
 from leaguedirector.sequence.sequenceHeaderView import SequenceHeaderView
