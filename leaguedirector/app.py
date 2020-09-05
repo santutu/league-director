@@ -15,7 +15,7 @@ from leaguedirector.bindings import Bindings
 from leaguedirector.settings import Settings
 from leaguedirector.widget.floatInput import FloatInput
 from leaguedirector.widget.vectorInput import VectorInput
-from leaguedirector.views.timelineWindow import TimelineWindow
+from leaguedirector.windows.timelineWindow import TimelineWindow
 from leaguedirector.widgets import *
 
 
