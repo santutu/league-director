@@ -854,6 +854,8 @@ class LeagueDirector(object):
             ('kf_dof_near', 'Keyframe DOF Near', ''),
             ('kf_dof_mid', 'Keyframe DOF Mid', ''),
             ('kf_dof_far', 'Keyframe DOF Far', ''),
+            ('copy_key_frames', 'Copy Key Frames', 'Ctrl+c'),
+            ('paste_key_frames', 'Paste Key Frames', 'Ctrl+v'),
         ])
 
     def addWindow(self, widget, name):

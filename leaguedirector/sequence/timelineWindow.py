@@ -209,6 +209,10 @@ class TimelineWindow(QWidget):
             self.sequenceTracks.addKeyframe('depthOfFieldMid')
         elif name == 'kf_dof_far':
             self.sequenceTracks.addKeyframe('depthOfFieldFar')
+        elif name == 'copy_key_frames':
+            self.sequenceTracks.copyKeyframes()
+        elif name == 'paste_key_frames':
+            self.sequenceTracks.pasteKeyframes()
 
     def formatTime(self, t):
         minutes, seconds = divmod(t, 60)

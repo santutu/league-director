@@ -1,3 +1,4 @@
+import copy
 import statistics
 from operator import attrgetter
 
@@ -5,6 +6,7 @@ from PySide2.QtCore import Signal, Qt, QEvent
 from PySide2.QtGui import QPen, QMouseEvent
 from PySide2.QtWidgets import QGraphicsView, QGraphicsScene, QAbstractScrollArea, QApplication, QGraphicsItem
 
+from leaguedirector.libs.memoryCache import MemoryCache
 from leaguedirector.sequence.constant import PRECISION, ADJACENT
 from leaguedirector.sequence.sequenceKeyframe import SequenceKeyframe
 from leaguedirector.sequence.sequenceTime import SequenceTime
@@ -41,6 +43,23 @@ class SequenceTrackView(QGraphicsView):
         headers.verticalScrollBar().valueChanged.connect(lambda value: self.verticalScrollBar().setValue(value))
         self.verticalScrollBar().valueChanged.connect(lambda value: headers.verticalScrollBar().setValue(value))
         self.scene.selectionChanged.connect(self.selectionChanged.emit)
+
+        self.clipboard = MemoryCache()
+        self.clipboard.rememberForever('copied_key_frames', [])
+
+    def copyKeyframes(self):
+        self.clipboard.rememberForever('copied_key_frames',
+                                       [(keyframe.track.name, copy.deepcopy(keyframe.item)) for keyframe in
+                                        self.selectedKeyframes()])
+        return self
+
+    def pasteKeyframes(self):
+        keyframes = self.clipboard.get('copied_key_frames')
+        for keyframe in keyframes:
+            [name, item] = keyframe
+            item = copy.deepcopy(item)
+            self.api.sequence.appendKeyframe(name, item)
+            SequenceKeyframe(self.api, item, self.tracks[name])
 
     def reload(self):
         for track in self.tracks.values():
