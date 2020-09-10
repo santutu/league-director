@@ -45,12 +45,12 @@ class SequenceTrackView(QGraphicsView):
         self.scene.selectionChanged.connect(self.selectionChanged.emit)
 
         self.clipboard = MemoryCache()
-        self.clipboard.rememberForever('copied_key_frames', [])
+        self.clipboard.set('copied_key_frames', [])
 
     def copyKeyframes(self):
-        self.clipboard.rememberForever('copied_key_frames',
-                                       [(keyframe.track.name, copy.deepcopy(keyframe.item)) for keyframe in
-                                        self.selectedKeyframes()])
+        self.clipboard.set('copied_key_frames',
+                           [(keyframe.track.name, copy.deepcopy(keyframe.item)) for keyframe in
+                            self.selectedKeyframes()])
         return self
 
     def pasteKeyframes(self):

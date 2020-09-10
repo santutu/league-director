@@ -1,7 +1,7 @@
 class MemoryCache:
     _data = {}
 
-    def rememberForever(self, key, value):
+    def set(self, key, value):
         if callable(value):
             value = value()
         self._data[key] = value
