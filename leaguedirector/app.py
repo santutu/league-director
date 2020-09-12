@@ -619,10 +619,15 @@ class ConnectWindow(QDialog):
 
     def reloadReplayApi(self):
         try:
-            if not ReplayApiHostSingleton.get_instance().find_and_set_host():
+            if ReplayApiHostSingleton.get_instance().find_and_set_host():
+                msg = QMessageBox()
+                msg.setText(f"found host :{ReplayApiHostSingleton.get_instance().get_host()}")
+                msg.exec_()
+            else:
                 msg = QMessageBox()
                 msg.setText("No Found League of Legends on processes")
                 msg.exec_()
+
         except Exception as e:
             msg = QMessageBox()
             msg.setText(f"{e}")
