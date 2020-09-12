@@ -618,9 +618,14 @@ class ConnectWindow(QDialog):
         self.reload()
 
     def reloadReplayApi(self):
-        if not ReplayApiHostSingleton.get_instance().find_and_set_host():
+        try:
+            if not ReplayApiHostSingleton.get_instance().find_and_set_host():
+                msg = QMessageBox()
+                msg.setText("No Found League of Legends on processes")
+                msg.exec_()
+        except Exception as e:
             msg = QMessageBox()
-            msg.setText("No Found League of Legends on processes")
+            msg.setText(f"{e}")
             msg.exec_()
 
     def sizeHint(self):
