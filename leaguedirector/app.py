@@ -15,6 +15,7 @@ from leaguedirector.widget.floatInput import FloatInput
 from leaguedirector.widget.vectorInput import VectorInput
 from leaguedirector.sequence.timelineWindow import TimelineWindow
 from leaguedirector.widgets import *
+from leaguedirector.utils import find_procs_by_name, find_port_by_pid
 
 
 class SkyboxCombo(QComboBox):
@@ -589,8 +590,9 @@ class Api(QObject):
 
 
 class ConnectWindow(QDialog):
-    def __init__(self):
+    def __init__(self, api):
         QDialog.__init__(self)
+        self.api = api
         self.setWindowTitle('Ready To Connect')
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -615,13 +617,26 @@ class ConnectWindow(QDialog):
         self.reloadReplayApiButton.clicked.connect(self.reloadReplayApi)
         self.layout.addWidget(self.reloadReplayApiButton)
 
+        self.testReplayApiButton = QPushButton("test replay api")
+        self.testReplayApiButton.clicked.connect(self.testReplayApi)
+        self.layout.addWidget(self.testReplayApiButton)
+
         self.reload()
+
+    def testReplayApi(self):
+        time = self.api.playback.time
+
+        msg = QMessageBox()
+        msg.setText(f"getting time from replay api  : {time}")
+        msg.exec_()
 
     def reloadReplayApi(self):
         try:
             if ReplayApiHostSingleton.get_instance().find_and_set_host():
+                processes = find_procs_by_name("League of Legends.exe")
                 msg = QMessageBox()
-                msg.setText(f"found host :{ReplayApiHostSingleton.get_instance().get_host()}")
+                msg.setText(
+                    f"found host :{ReplayApiHostSingleton.get_instance().get_host()}, process length {len(processes)}")
                 msg.exec_()
             else:
                 msg = QMessageBox()
@@ -699,7 +714,7 @@ class LeagueDirector(object):
         self.addWindow(TimelineWindow(self.api), 'timeline')
         self.addWindow(RecordingWindow(self.api), 'recording')
         self.addWindow(KeybindingsWindow(self.bindings), 'bindings')
-        self.addWindow(ConnectWindow(), 'connect')
+        self.addWindow(ConnectWindow(self.api), 'connect')
         self.addWindow(UpdateWindow(), 'update')
         self.window.setCentralWidget(self.mdi)
         self.window.setWindowTitle('League Director')

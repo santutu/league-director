@@ -26,11 +26,11 @@ class ReplayApiHostSingleton:
 
     def find_and_set_host(self):
         processes = find_procs_by_name("League of Legends.exe")
-        if (len(processes) == 0):
+        if len(processes) == 0:
             return False
 
         port = find_port_by_pid(processes[0].pid)
 
-        self.set_host("https://127.0.0.1:{}".format(port))
+        self.set_host(f"https://127.0.0.1:{port}")
 
         return True
