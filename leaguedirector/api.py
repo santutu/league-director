@@ -442,7 +442,7 @@ class Sequence(Resource):
         self.loadHistory(self.history_index + 1)
 
     def setDirectory(self, path):
-        if os.path.exists(path) and os.path.isdir(path):
+        if path and os.path.exists(path) and os.path.isdir(path):
             self.directory = path
             self.clearData()
             self.loadFile('default')

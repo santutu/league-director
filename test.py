@@ -1,5 +1,7 @@
+import request
 import os
 import subprocess
+
 
 pid = 1234
 process = subprocess.Popen('netstat -ano | find "{}"'.format(pid), shell=True, stdout=subprocess.PIPE)
