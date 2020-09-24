@@ -4,11 +4,18 @@ import json
 import copy
 import logging
 import functools
-
+import requests
+import threading
+from leaguedirector.libs.requestGet import RequestGet
+from leaguedirector.libs.requestPost import RequestPost
 from leaguedirector.replayApiHostSingleton import ReplayApiHostSingleton
 from leaguedirector.widgets import userpath
 from PySide2.QtCore import *
 from PySide2.QtNetwork import *
+from multiprocessing import Process
+import logging
+
+thread_pool = QThreadPool.globalInstance()
 
 
 class Resource(QObject):
@@ -23,6 +30,7 @@ class Resource(QObject):
     readonly = False
     writeonly = False
     network = None
+    _cert_verification_path = None
 
     @property
     def host(self):
@@ -50,11 +58,7 @@ class Resource(QObject):
 
     def manager(self):
         if Resource.network is None:
-            # QT does not ship SSL binaries so we have to bundle them in our res directory
-            os.environ['PATH'] = os.path.abspath('resources') + os.pathsep + os.environ['PATH']
-
-            # Then setup our certificate for the lol game client
-            QSslSocket.addDefaultCaCertificates(os.path.abspath('resources/riotgames.pem'))
+            QSslSocket.addDefaultCaCertificates(self.getCertVerificationPath())
             Resource.network = QNetworkAccessManager(QCoreApplication.instance())
             Resource.network.sslErrors.connect(self.sslErrors)
         return Resource.network
@@ -74,25 +78,31 @@ class Resource(QObject):
     def keys(self):
         return self.fields.keys()
 
-    def update(self, data=None):
-        request = QNetworkRequest(QUrl(self.host + self.url))
-        if data is not None:
-            request.setHeader(QNetworkRequest.ContentTypeHeader, "application/json")
-            response = self.manager().post(request, QByteArray(json.dumps(data).encode()))
-        else:
-            response = self.manager().get(request)
-        response.finished.connect(functools.partial(self.finished, response))
+    def getCertVerificationPath(self):
+        if Resource._cert_verification_path is None:
+            os.environ['PATH'] = os.path.abspath('resources') + os.pathsep + os.environ['PATH']
+            Resource._cert_verification_path = os.path.abspath('resources/riotgames.pem')
+        return Resource._cert_verification_path
 
-    def finished(self, response):
-        error = response.error()
-        if error == QNetworkReply.NoError:
-            Resource.connected = True
-            self.apply(json.loads(response.readAll().data().decode()))
-            self.timestamp = time.time()
-        elif error in (QNetworkReply.ConnectionRefusedError, QNetworkReply.TimeoutError):
-            Resource.connected = False
+    def update(self, data=None):
+        endpoint = self.host + self.url
+        if data is None:
+            req = RequestGet(endpoint, self.getCertVerificationPath())
         else:
-            logging.error("Request Failed: {} {}".format(self.url, response.errorString()))
+            req = RequestPost(endpoint, json.dumps(data), self.getCertVerificationPath())
+
+        req.finished.connect(self.updateUI)
+        thread_pool.start(req)
+
+    def updateUI(self, res):
+        status = res.status_code
+        if status == 200:
+            Resource.connected = True
+            self.apply(json.loads(res.text))
+            self.timestamp = time.time()
+        else:
+            Resource.connected = False
+
         self.updated.emit()
 
     def apply(self, data):
