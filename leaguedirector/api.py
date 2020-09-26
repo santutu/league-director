@@ -95,13 +95,13 @@ class Resource(QObject):
         thread_pool.start(req)
 
     def updateUI(self, res):
-        status = res.status_code
-        if status == 200:
+
+        if res.error is True or res.status_code != 200:
+            Resource.connected = False
+        else:
             Resource.connected = True
             self.apply(json.loads(res.text))
             self.timestamp = time.time()
-        else:
-            Resource.connected = False
 
         self.updated.emit()
 

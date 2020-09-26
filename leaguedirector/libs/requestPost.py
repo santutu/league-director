@@ -1,6 +1,5 @@
+from leaguedirector.libs.emptyClass import EmptyClass
 from leaguedirector.libs.request import Request
-from leaguedirector.libs.runnableWithSignals import RunnableWithSignals
-from PySide2.QtCore import *
 import requests
 
 
@@ -11,5 +10,11 @@ class RequestPost(Request):
         Request.__init__(self, endpoint, certPath, parent)
 
     def run(self):
-        res = requests.post(self.endpoint, data=self.data, verify=self.certPath)
+        try:
+            res = requests.post(self.endpoint, data=self.data, verify=self.certPath)
+            res.error = False
+        except:
+            res = EmptyClass()
+            res.error = True
+
         self.finished.emit(res)

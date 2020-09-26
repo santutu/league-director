@@ -1,6 +1,7 @@
 import os
+
+from leaguedirector.libs.emptyClass import EmptyClass
 from leaguedirector.libs.request import Request
-from PySide2.QtCore import *
 import requests
 
 
@@ -9,5 +10,11 @@ class RequestGet(Request):
         Request.__init__(self, endpoint, certPath, parent)
 
     def run(self):
-        res = requests.get(self.endpoint, verify=self.certPath)
+        try:
+            res = requests.get(self.endpoint, verify=self.certPath)
+            res.error = False
+        except:
+            res = EmptyClass()
+            res.error = True
+
         self.finished.emit(res)
