@@ -1,8 +1,10 @@
 import functools
 
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QScrollArea, QWidget, QFormLayout
-
+from PySide2.QtWidgets import QScrollArea, QWidget, QFormLayout, QPushButton, QInputDialog, QMessageBox
+from leaguedirector.widgets import userpath
+from leaguedirector.visible.visibleCombo import VisibleCombo
+from leaguedirector.visible.visibleDataContainer import VisibleDataContainer
 from leaguedirector.widgets import BooleanInput
 
 
@@ -43,8 +45,26 @@ class VisibleWindow(QScrollArea):
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setWindowTitle('Visibility')
+
+        self.visibleCombo = VisibleCombo(VisibleDataContainer(userpath('visible'), self.api), self.api)
+        addNewVisibleButton = QPushButton()
+        addNewVisibleButton.setText("New Visible")
+        addNewVisibleButton.clicked.connect(self.clickedNewVisibleButton)
+        saveVisibleButton = QPushButton()
+        saveVisibleButton.setText("Save Visible")
+        saveVisibleButton.clicked.connect(self.clickedSaveVisibleButton)
+        removeVisibleButton = QPushButton()
+        removeVisibleButton.setText("Remove Visible")
+        removeVisibleButton.clicked.connect(self.clickedRemoveVisibleButton)
+
         widget = QWidget()
         layout = QFormLayout()
+
+        layout.addWidget(self.visibleCombo)
+        layout.addWidget(addNewVisibleButton)
+        layout.addWidget(saveVisibleButton)
+        layout.addWidget(removeVisibleButton)
+
         for name, binding, label in self.options:
             self.inputs[name] = BooleanInput()
             self.inputs[name].setValue(True)
@@ -53,6 +73,25 @@ class VisibleWindow(QScrollArea):
             layout.addRow(label, self.inputs[name])
         widget.setLayout(layout)
         self.setWidget(widget)
+
+    def clickedRemoveVisibleButton(self):
+        msgBox = QMessageBox()
+        msgBox.setWindowTitle("Visible")
+        msgBox.setText("Remove?")
+        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        ret = msgBox.exec_()
+
+        if ret == QMessageBox.Yes:
+            self.visibleCombo.removeCurrentItem()
+
+    def clickedSaveVisibleButton(self):
+        self.visibleCombo.saveCurrentItem()
+
+    def clickedNewVisibleButton(self):
+
+        name, ok = QInputDialog.getText(self, 'Create New Visible', 'Enter a name for your visible')
+        if ok:
+            self.visibleCombo.newVisible(name)
 
     def connect(self):
         for name, field in self.inputs.items():

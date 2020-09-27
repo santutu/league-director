@@ -1,0 +1,24 @@
+class Visible:
+    fogOfWar: bool = True
+    outlineSelect: bool = True
+    outlineHover: bool = True
+    floatingText: bool = True
+    interfaceAll: bool = True
+    interfaceReplay: bool = True
+    interfaceScore: bool = True
+    interfaceScoreboard: bool = True
+    interfaceFrames: bool = True
+    interfaceMinimap: bool = True
+    interfaceTimeline: bool = True
+    interfaceChat: bool = True
+    interfaceTarget: bool = True
+    interfaceQuests: bool = True
+    interfaceAnnounce: bool = True
+    healthBarChampions: bool = True
+    healthBarStructures: bool = True
+    healthBarWards: bool = True
+    healthBarPets: bool = True
+    healthBarMinions: bool = True
+    environment: bool = True
+    characters: bool = True
+    particles: bool = True
