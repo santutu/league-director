@@ -15,7 +15,7 @@ from PySide2.QtNetwork import *
 from multiprocessing import Process
 import logging
 
-thread_pool = QThreadPool.globalInstance()
+thread_pool = QThreadPool().globalInstance()
 
 
 class Resource(QObject):
