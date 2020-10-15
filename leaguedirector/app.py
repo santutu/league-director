@@ -6,10 +6,11 @@ import logging.handlers
 import leaguedirector
 from PySide2.QtNetwork import *
 
+from leaguedirector.bindings.bindings import Bindings
+from leaguedirector.bindings.keybindingsWindow import KeybindingsWindow
 from leaguedirector.replayApiHostSingleton import ReplayApiHostSingleton
 from leaguedirector.enable import *
 from leaguedirector.api import Game, Playback, Render, Particles, Recording, Sequence
-from leaguedirector.bindings import Bindings
 from leaguedirector.settings import Settings
 from leaguedirector.visible.visibleWindow import VisibleWindow
 from leaguedirector.widget.floatInput import FloatInput
@@ -30,49 +31,6 @@ class SkyboxCombo(QComboBox):
         for path in sorted(paths):
             self.addItem(os.path.basename(path), path)
         QComboBox.showPopup(self)
-
-
-class KeybindingsWindow(QScrollArea):
-    def __init__(self, bindings):
-        QScrollArea.__init__(self)
-        self.fields = {}
-        self.bindings = bindings
-        self.setWidgetResizable(True)
-        self.setWindowTitle('Key Bindings')
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        widget = QWidget()
-        layout = QFormLayout()
-        for name, value in self.bindings.getBindings().items():
-            binding = HBoxWidget()
-            field = QKeySequenceEdit(QKeySequence(value))
-            field.keySequenceChanged.connect(functools.partial(self.edited, name, field))
-            clear = QPushButton()
-            clear.setToolTip('Clear Key Binding')
-            clear.setFixedWidth(20)
-            clear.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
-            clear.clicked.connect(functools.partial(self.clear, name, field))
-            binding.addWidget(field)
-            binding.addWidget(clear)
-            layout.addRow(self.bindings.getLabel(name), binding)
-            self.fields[name] = field
-        reset = QPushButton('Reset To Defaults')
-        reset.clicked.connect(self.reset)
-        layout.addRow('', reset)
-        widget.setLayout(layout)
-        self.setWidget(widget)
-
-    def reset(self):
-        for name, default in self.bindings.defaults.items():
-            sequence = QKeySequence(default)
-            self.fields[name].setKeySequence(sequence)
-            self.bindings.setBinding(name, sequence)
-
-    def clear(self, name, field):
-        field.clear()
-        self.bindings.setBinding(name, field.keySequence())
-
-    def edited(self, name, field, *args):
-        self.bindings.setBinding(name, field.keySequence())
 
 
 class RenderWindow(QScrollArea):
@@ -721,7 +679,7 @@ class LeagueDirector(object):
             ('camera_pitch_down', 'Camera Pitch Down', ''),
             ('camera_roll_left', 'Camera Roll Left', ''),
             ('camera_roll_right', 'Camera Roll Right', ''),
-            ('camera_move_speed_up', 'Camera Move Speed Up', 'Ctrl++'),
+            ('camera_move_speed_up', 'Camera Move Speed Up', 'Ctrl+='),
             ('camera_move_speed_down', 'Camera Move Speed Down', 'Ctrl+-'),
             ('camera_look_speed_up', 'Camera Look Speed Up', ''),
             ('camera_look_speed_down', 'Camera Look Speed Down', ''),
@@ -822,7 +780,7 @@ class LeagueDirector(object):
 
     def update(self):
         self.api.update()
-        self.bindings.setGamePid(self.api.game.processID)
+        self.bindings.setGamePid([self.app.applicationPid(), self.api.game.processID])
         for name, window in self.windows.items():
             if name == 'update':
                 window.parent().setVisible(self.updateAvailable)

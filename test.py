@@ -1,16 +1,15 @@
-import threading
-import requests
-import os
-import subprocess
+from typing import ItemsView, Dict
+
+import keyboard
+
+sad: Dict[str, int] = {
+    "123": 1
+
+}
 
 
-pid = 1234
-process = subprocess.Popen('netstat -ano | find "{}"'.format(pid), shell=True, stdout=subprocess.PIPE)
+def aa():
+    print('aa')
 
-output = str(process.communicate()[0])
-port = output[output.find(":") + 1:output.find(" ", output.find(":"))]
-print(output)
-print(port)
 
-if output:
-    print("ok")
+keyboard.add_hotkey("Ctrl+v ", aa)

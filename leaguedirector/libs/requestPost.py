@@ -12,6 +12,7 @@ class RequestPost(Request):
     def run(self):
         try:
             res = requests.post(self.endpoint, data=self.data, verify=self.certPath)
+            # res = requests.post(self.endpoint, data=self.data, verify=False)
             res.error = False
         except:
             res = EmptyClass()

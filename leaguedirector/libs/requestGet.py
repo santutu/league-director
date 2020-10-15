@@ -12,6 +12,7 @@ class RequestGet(Request):
     def run(self):
         try:
             res = requests.get(self.endpoint, verify=self.certPath)
+            # res = requests.get(self.endpoint, verify=False)
             res.error = False
         except:
             res = EmptyClass()

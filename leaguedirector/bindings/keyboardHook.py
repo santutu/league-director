@@ -1,10 +1,9 @@
-import threading
-import functools
 import platform
-from ctypes import *
-from PySide2.QtGui import *
-from PySide2.QtCore import *
-from PySide2.QtWidgets import *
+import threading
+from ctypes import windll, Structure, c_int, POINTER, c_ulong, byref, CFUNCTYPE
+
+from PySide2.QtCore import QThread, QCoreApplication, QEvent, Qt
+from PySide2.QtWidgets import QApplication
 
 
 class KeyboardHook(QThread):
@@ -67,7 +66,7 @@ class KeyboardHook(QThread):
             if pid.value == self.pid:
                 windll.user32.SendMessageA(self.window.winId(), wParam, lParam.contents.vk_code, 0)
             return windll.user32.CallNextHookEx(None, nCode, wParam, lParam)
- 
+
         function = CFUNCTYPE(c_int, WPARAM, LPARAM, POINTER(KBDLLHOOKSTRUCT))(callback)
         hook = windll.user32.SetWindowsHookExW(13, function, windll.kernel32.GetModuleHandleW(None), 0)
 
@@ -129,48 +128,3 @@ class KeyboardHook(QThread):
             CFRunLoopAddSource(self.runLoop, source, kCFRunLoopDefaultMode)
             CGEventTapEnable(tap, True)
             CFRunLoopRun()
-
-
-class Bindings(QObject):
-    triggered = Signal(str)
-
-    def __init__(self, window, bindings, options):
-        QObject.__init__(self)
-        self.labels = {name : label for name, label, _ in options}
-        self.shortcuts = {}
-        self.defaults = {}
-        for name, _, default in options:
-            if name in bindings:
-                sequence = QKeySequence(bindings[name])
-            else:
-                sequence = QKeySequence(default)
-            shortcut = QShortcut(sequence, window)
-            shortcut.setContext(Qt.WindowShortcut)
-            shortcut.setAutoRepeat(True)
-            shortcut.activated.connect(functools.partial(self.activated, name))
-            shortcut.activatedAmbiguously.connect(functools.partial(self.activated, name))
-            self.shortcuts[name] = shortcut
-            self.defaults[name] = default
-        self.hook = KeyboardHook(window)
-        self.hook.start()
-
-    def activated(self, name):
-        sequence = self.shortcuts[name].key()
-        for name, shortcut in self.shortcuts.items():
-            if shortcut.key() == sequence:
-                self.triggered.emit(name)
-
-    def getBindings(self):
-        return {name : shortcut.key().toString() for name, shortcut in self.shortcuts.items()}
-
-    def getOptions(self):
-        return [(name, label, self.shortcuts[name].key().toString()) for name, label, default in self.options]
-
-    def setBinding(self, name, sequence):
-        self.shortcuts[name].setKey(QKeySequence(sequence))
-
-    def getLabel(self, name):
-        return self.labels[name]
-
-    def setGamePid(self, pid):
-        self.hook.setPid(pid)
