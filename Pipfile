@@ -11,5 +11,7 @@ psutil = "==5.5.0"
 pyobjc = {version = "==5.1.2", sys_platform = "== 'darwin'"}
 requests = "==2.24.0"
 marshmallow = "==3.8.0"
+keyboard = "==0.13.5"
 [requires]
 python_version = "3.7"
+
