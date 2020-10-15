@@ -20,10 +20,19 @@ class Shortcut:
         return hotkey != ""
 
     def setHotkey(self, hotkey: str):
-        if self.canHotkey(hotkey):
-            keyboard.remove_hotkey(self._hotkey)
+        self.removeHotKey()
+        try:
             self._addHotKey(hotkey, self._callback)
-            self._hotkey = hotkey
+        except Exception as e:
+            print(e)
+        self._hotkey = hotkey
+
+    def removeHotKey(self):
+        try:
+            if self.canHotkey(self._hotkey):
+                keyboard.remove_hotkey(self._callback)
+        except Exception as e:
+            print(e)
 
     def _addHotKey(self, hotkey: str, callback: partial) -> str:
         if self.canHotkey(hotkey):
