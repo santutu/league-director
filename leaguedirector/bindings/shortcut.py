@@ -17,7 +17,7 @@ class Shortcut:
         return self._hotkey
 
     def canHotkey(self, hotkey: str) -> bool:
-        return hotkey != ""
+        return hotkey != "" and  not hotkey and not isinstance(hotkey, basestring)
 
     def setHotkey(self, hotkey: str):
         self.removeHotKey()
