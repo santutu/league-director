@@ -407,9 +407,9 @@ class Api(QObject):
 
     def onKeybinding(self, name):
         if name == 'camera_up':
-            self.render.moveCamera(y=7)
+            self.render.moveCamera(z=7)
         elif name == 'camera_down':
-            self.render.moveCamera(y=-7)
+            self.render.moveCamera(z=-7)
         elif name == 'camera_move_speed_up':
             self.render.cameraMoveSpeed = self.render.cameraMoveSpeed * 1.2
         elif name == 'camera_move_speed_down':
